@@ -19,6 +19,11 @@
       - date explorations
         - identify the earliest adn latest boundaries
         - understand the scope of data and the timespan using MIN/MAX[DATE]
+
+  
+  - MEASURESX EXPLORATION
+
+      calculate key metrics of the business, the bi numbers. hihgest level of aggregation, lowest level of details
 */
 
 -- Create the database if it does not exist
@@ -44,5 +49,76 @@ SELECT * FROM gold.fact_sales
 SELECT 
   MIN(order_date) first_order,
   MAX(order_date) last_order,
-  DATEDIFF(YEAR, MIN(order_date), MAX(order_date)) timespan
+  DATEDIFF(YEAR, MIN(order_date), MAX(order_date)) order_range_yars
 FROM gold.fact_sales
+
+-- find the youngest and oldest customers 
+SELECT
+  MIN(birthdate) youngest_customer,
+  MAX(birthdate) oldest_customer,
+  DATEDIFF(YEAR, MIN(birthdate), GETDATE()) youngest_customer_age,
+  DATEDIFF(YEAR, MAX(birthdate), GETDATE()) oldest_customer_age
+FROM gold.dim_customers
+
+/*
+  MEASURES
+
+  - find the total sales
+  - fiind how many items are sold
+  - find the aerage selling price
+  - find the total number of orders
+  - find the total number of products
+  - find the total number of customers
+  - find the total number of customers that have placed an order
+*/
+
+SELECT * FROM gold.fact_sales ORDER BY order_number
+
+-- TOTAL SALES
+SELECT SUM(sales_amount) total_sales FROM gold.fact_sales
+
+-- how many items are sold 
+SELECT SUM(quantity) total_number_of_items FROM gold.fact_sales
+
+-- average selling price
+SELECT AVG(price) avg_selling_price FROM gold.fact_sales
+
+-- total number of orders
+    SELECT * FROM gold.fact_sales ORDER BY order_number
+    SELECT order_number, COUNT(*) FROM gold.fact_sales GROUP BY order_number HAVING COUNT(*) > 1 -- checking if there are orders spaning across more than one row, and yes there is
+    SELECT order_number, COUNT(*) FROM gold.fact_sales GROUP BY order_number HAVING COUNT(*) > 1 -- checking if there are orders spaning across more than one row, and yes there is
+
+SELECT 
+  COUNT(DISTINCT order_number) total_orders
+FROM gold.fact_sales
+
+-- find the total number of products
+SELECT product_name -- no repetition of product_key, product_id, product_number, product_name: so that means all rows are unique
+-- , product_id, product_number, product_name
+FROM gold.dim_products
+GROUP BY product_name
+HAVING COUNT(*) > 1
+
+SELECT COUNT(product_key) total_no_of_products FROM gold.dim_products
+
+-- find total number of customers
+SELECT * FROM gold.dim_customers
+
+  -- check for duplicates in customer key, id and number
+  SELECT 
+    customer_number
+  FROM gold.dim_customers
+  GROUP BY customer_number -- no duplicates found for all entries
+  HAVING COUNT(*) > 1
+
+SELECT COUNT(customer_key) total_customers FROM gold.dim_customers
+
+-- find total number of customers that have placed an order
+    SELECT TOP 10 * FROM gold.dim_customers
+    SELECT TOP 10 * FROM gold.fact_sales
+
+SELECT 
+  COUNT(*)
+FROM gold.dim_customers c
+LEFT JOIN gold.fact_sales f
+  ON c.customer_key = f.customer_key
