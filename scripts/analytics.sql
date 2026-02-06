@@ -15,6 +15,7 @@
   STEPS TAKEN IN DOING ANALYTICS FOR DATASETS
   
   - data exploratio: just to know what we have here, the number of tables, columns present etc)
+  - Dimensions exploration: helps us identify unique values in each dimension, recognizing how data might be grouped or segmented, which is useful for later analysis. juse use DISTINCT COLUMN NAME
 */
 
 -- Create the database if it does not exist
@@ -31,3 +32,6 @@ SELECT * FROM INFORMATION_SCHEMA.TABLES
 -- Explore all columns in the database
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS
 -- WHERE TABLE_NAME = 'dim_customers'
+
+-- 1. DIMENSIONS EXPLORATION
+SELECT DISTINCT country FROM gold.dim_customers
