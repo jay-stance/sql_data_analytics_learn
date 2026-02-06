@@ -16,6 +16,9 @@
   
   - data exploratio: just to know what we have here, the number of tables, columns present etc)
   - Dimensions exploration: helps us identify unique values in each dimension, recognizing how data might be grouped or segmented, which is useful for later analysis. juse use DISTINCT COLUMN NAME
+      - date explorations
+        - identify the earliest adn latest boundaries
+        - understand the scope of data and the timespan using MIN/MAX[DATE]
 */
 
 -- Create the database if it does not exist
@@ -33,5 +36,13 @@ SELECT * FROM INFORMATION_SCHEMA.TABLES
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS
 -- WHERE TABLE_NAME = 'dim_customers'
 
--- 1. DIMENSIONS EXPLORATION
+-- 2. DIMENSIONS EXPLORATION
 SELECT DISTINCT country FROM gold.dim_customers
+
+-- 3. DATE EXPLORATION: identify the earliest adn latest boundaries
+SELECT * FROM gold.fact_sales
+SELECT 
+  MIN(order_date) first_order,
+  MAX(order_date) last_order,
+  DATEDIFF(YEAR, MIN(order_date), MAX(order_date)) timespan
+FROM gold.fact_sales
