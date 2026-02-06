@@ -28,6 +28,10 @@
       compare the measure values by categories, it helps us understand the importance of different caegories
       [MEASURE] BY [DIMENSION] - we need the diension in order to split the measure
       eg: total sales by country 
+
+  - RANKING ANALYSIS
+      order the value of dimensions by measure to identify top or bottom performers 
+      Rank [DIMENSION] by [MEASURE] eg rank countries by total sales, top products by category, bottoom three customers by total orders
 */
 
 -- Create the database if it does not exist
@@ -187,10 +191,6 @@ GROUP BY category_id, category
 SELECT category_id, category, AVG(cost) average_cost FROM gold.dim_products 
 GROUP BY category_id, category
 
-SELECT TOP 10 * FROM gold.fact_sales
-SELECT TOP 10 * FROM gold.dim_customers
-SELECT TOP 10 * FROM gold.dim_products
-
 -- toal revenue generatd for each category
 SELECT 
   dp.category_id, dp.category, SUM(fs.sales_amount) revenue_per_category
@@ -213,3 +213,24 @@ FROM gold.fact_sales fs
 LEFT JOIN gold.dim_customers dc 
   ON fs.customer_key = dc.customer_key
 GROUP BY dc.country
+
+-- RANK ANALYSIS
+
+SELECT TOP 10 * FROM gold.fact_sales
+SELECT TOP 10 * FROM gold.dim_customers
+SELECT TOP 10 * FROM gold.dim_products
+
+
+-- which 5 products generate the highest revenue
+SELECT product_key, total_sales, rank FROM (
+  SELECT -- TOP 5
+    product_key,
+    SUM(sales_amount) total_sales,
+    ROW_NUMBER() OVER(ORDER BY SUM(sales_amount) DESC) rank 
+  FROM gold.fact_sales
+  GROUP BY product_key
+  -- ORDER BY SUM(sales_amount) DESC
+) t 
+WHERE rank < 6
+
+-- 5 worst performing is just the inverse
