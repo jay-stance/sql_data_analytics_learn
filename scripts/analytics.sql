@@ -117,8 +117,47 @@ SELECT COUNT(customer_key) total_customers FROM gold.dim_customers
     SELECT TOP 10 * FROM gold.dim_customers
     SELECT TOP 10 * FROM gold.fact_sales
 
+
+-- always try to get all the data you need from one or least table, only join when that is the way around it. like here, I could easily just count customer key from the sales table but i went to start using join statement
 SELECT 
-  COUNT(*)
+  COUNT(DISTINCT c.customer_key)
 FROM gold.dim_customers c
 LEFT JOIN gold.fact_sales f
   ON c.customer_key = f.customer_key
+
+SELECT COUNT(DISTINCT customer_key) FROM gold.fact_sales
+
+/*
+  GENERATE A REPORT THAT SOWS ALL THESE KEY METRICS
+
+  I would first get all the single aggregateeable ones from the tables
+*/
+
+WITH 
+  CTE_products AS (
+    SELECT COUNT(product_key) total_products FROM gold.dim_products
+  )
+SELECT 
+  SUM(sales_amount) total_sales,
+  SUM(quantity) total_number_of_items,
+  AVG(price) avg_selling_price,
+  COUNT(DISTINCT order_number) total_orders,
+  MAX(p.total_products) AS total_products,
+  COUNT(DISTINCT customer_key) customers_with_orders,
+  (SELECT COUNT(customer_key) FROM gold.dim_customers) total_customers
+FROM gold.fact_sales, CTE_products p
+
+-- Another method, here we use only 2 columns, nto rows this tiem around: value: column name
+SELECT 'Total Sales' AS "Measure Name", SUM(sales_amount) AS 'Measure Value' FROM gold.fact_sales
+UNION ALL 
+SELECT 'Total Quantity', SUM(quantity) FROM gold.fact_sales -- we must add the column headers again as they are gotten from the first table as per union all
+UNION ALL 
+SELECT 'Average Selling Price', AVG(price) FROM gold.fact_sales
+UNION ALL 
+SELECT 'Total Orders', COUNT(DISTINCT order_number) FROM gold.fact_sales
+UNION ALL 
+SELECT 'Total Products', COUNT(product_key) FROM gold.dim_products
+UNION ALL 
+SELECT 'Total Customers With Orders', COUNT(DISTINCT customer_key) FROM gold.fact_sales
+UNION ALL 
+SELECT 'Total Customers', COUNT(customer_key) FROM gold.dim_customers
